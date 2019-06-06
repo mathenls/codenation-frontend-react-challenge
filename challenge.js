@@ -2,6 +2,7 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 const FormData = require('form-data');
+require('dotenv').config();
 
 isLetter = (str) => {
     return str.length === 1 && str.match(/[a-z]/i);
@@ -67,8 +68,11 @@ postFileStreamToAPI = async (url, token, formData) => {
 }
 
 runMainTask = async () => {
+    if (!process.env.USER_TOKEN) {
+        throw new Error('Set the USER_TOKEN variable on the .env file, on the root of this project');
+    }
     const getDataURL = 'https://api.codenation.dev/v1/challenge/dev-ps/generate-data';
-    const token = '40f2b8cae2ef114acf2aae46e98883bf0d01e2b6';
+    const token = process.env.USER_TOKEN;
     const postDataURL = 'https://api.codenation.dev/v1/challenge/dev-ps/submit-solution';
 
     const initialChallengeData = await fetchDataFromAPI(getDataURL, token);
@@ -88,7 +92,10 @@ runMainTask = async () => {
     }
     const formData = createFormDataFromObject(challengeResponseRequestBody);
     const challengeResultResponse = await postFileStreamToAPI(postDataURL, token, formData);
-    console.log(challengeResultResponse);
+    console.log(`You scored ${challengeResultResponse.score}% on this challenge.`);
 }
 
 runMainTask()
+    .catch((e) => {
+        console.log("Error: " + e.message);
+    })
